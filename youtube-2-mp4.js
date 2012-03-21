@@ -2,10 +2,12 @@
 "use strict";
 
 var HttpClient = require('./http-client.js').HttpClient;
-var ParseUri   = require('./modules/parseUri/parseuri.js');
+var ParseUri   = require('./modules/parseUri/parseuri.js'); // XXX module.export 決め打ちだけどTiで動くのか
 
 var Youtube2Mp4 = function () {};
 var BASE_URL = 'http://www.youtube.com/watch?v=';
+//var DEFAULT_FMT = 18; // XXX
+var DEFAULT_FMT = 19; // XXX
 
 Object.prototype.values = function() {var o=this;var r=[];for(var k in o) if(o.hasOwnProperty(k)){r.push(o[k])}return r};
 Object.prototype.keys   = function() {var o=this;var r=[];for(var k in o) if(o.hasOwnProperty(k)){r.push(  k )}return r};
@@ -19,30 +21,62 @@ if (typeof exports == 'undefined') {
 }
 
 Youtube2Mp4.prototype = {
-    getMp4: function (videoId, args) { // d
+    getMp4: function (videoId, args) { // deferred
         if (!videoId)
             throw "Usage:\n"
                 + "\tvar yt = new Youtube2Mp4();\n"
                 + "\tvar mp4_link = yt.getMp4([video_id|video_url]);";
-        args = {};
-        var data = this.prepareDownload(videoId);
-        return data; // XXX
+        if (!args) args = {};
+        var self = this;
+        return this.prepareDownload(videoId).next(function (data) {
+            var fmt = args.fmt || data.fmt || DEFAULT_FMT;
+            var videoUrl = data.videoUrlMap[fmt].url;
+            if (!videoUrl) throw 'this video has not supported fmt: ' + fmt;
+            if (!args.filename) args.filename = args.file_name;
+            var filename = self._formatFilename(args.filename, {
+                videoId    : data.videoId,
+                fmt        : fmt,
+                suffix     : data.videoUrlMap[fmt].suffix || this._suffix(fmt),
+                resolution : data.videoUrlMap[fmt].resolution || 0,
+            });
+            return [filename, videoUrl];
+        });
     },
-    prepareDownload: function (videoId) { // d
+    _formatFilename: function (filename, data) {
+        if (typeof filename === 'undefined')
+            return data.videoId + '.' + data.suffix;
+        filename = filename.replace(/{([^}]+)}/g, function (str, $1) {
+            return data.$1 || '{' + $1 + '}';
+        });
+        return filename;
+    },
+    prepareDownload: function (videoId) { // deferred
         videoId = this._videoId(videoId);
         var self = this;
-        this._getContent(videoId).next(function (content) {
+        return this._getContent(videoId).next(function (content) {
             var videoUrlMap = self._fetchVideoUrlMap(content);
             var fmtList = [];
             var sorted = videoUrlMap.values().map(function (value) {
                 var resolution = value.resolution;
                 return [
                     value,
-                    resolution.replace(/(\d+)x(\d+)/, function (str, p1, p2) { return p1 * p2 }),
-                ]
-            }).sort(function (a, b) { return b[1] - a[1] }).map(function () {
+                    resolution.replace(/(\d+)x(\d+)/, function (str, $1, $2) { return $1 * $2 }),
+                ];
+            }).sort(function (a, b) {
+                return b[1] - a[1]
+            }).map(function (fmt) {
+                fmtList.push(fmt[0].fmt);
+                return fmt[0];
             });
-            
+            var hqData = sorted[0];
+            return {
+                videoId     : videoId,
+                videoUrl    : hqData.url,
+                videoUrlMap : videoUrlMap,
+                fmt         : hqData.fmt,
+                fmtList     : fmtList,
+                suffix      : hqData.suffix,
+            };
         });
     },
     _videoId: function (videoId) {
@@ -50,7 +84,7 @@ Youtube2Mp4.prototype = {
         if (m = (videoId.match(/\/.*?[?&;!]v=([^&#?=/;]+)/)||[])[1]) return m;
         return videoId;
     },
-    _getContent: function (videoId) { // d
+    _getContent: function (videoId) { // deferred
         var url = BASE_URL + videoId;
         return (new HttpClient).get(url).next(function (res) {
             if (res.status != 200)
@@ -59,18 +93,19 @@ Youtube2Mp4.prototype = {
         });
     },
     _fetchVideoUrlMap: function (content) {
-        var args = _getArgs(content);
+        var args = this._getArgs(content);
         if (!(args.fmt_list && args.url_encoded_fmt_stream_map))
             throw 'failed to find video urls.';
         var fmtMap    = this._parseFmtMap(args.fmt_list);
         var fmtUrlMap = this._parseStreamMap(args.url_encoded_fmt_stream_map);
         var videoUrlMap = {};
-        fmtMap.each(function (key) {
-            this[fmt] = {
+        var self = this;
+        fmtMap.keys().map(function (key) {
+            videoUrlMap[key] = {
                 fmt        : key,
                 resolution : fmtMap[key],
                 url        : fmtUrlMap[key],
-                suffix     : this._suffix(key),
+                suffix     : self._suffix(key),
             };
         });
         return videoUrlMap;
@@ -81,7 +116,7 @@ Youtube2Mp4.prototype = {
              : /13|17/.test(fmt)       ? '3gp'
              :                           'flv';
     },
-    _parseFmtMmap : function (param) {
+    _parseFmtMap : function (param) {
         var fmtMap = {};
         param.split(',').forEach(function (stuff) {
             var tmp = stuff.split('/');
@@ -94,23 +129,24 @@ Youtube2Mp4.prototype = {
     _parseStreamMap : function (param) {
         var fmtUrlMap = {};
         param.split(',').forEach(function (stuff) {
-            var query = ParseUri.parseUri(stuff).queryKey;
+            var parsed = ParseUri('http://dum.my/?' + stuff);
+            var query = parsed.queryKey;
             fmtUrlMap[query.itag] = query.url;
         });
         return fmtUrlMap;
     },
     _getArgs: function (content) {
         var data;
-        var lines = content.split(/\n/).filter(function (line) { !!line });
+        var lines = content.split(/\n/).filter(function (line) { return !!line });
         for (var i = 0; i < lines.length; i++) {
             var line = lines[i];
             var m;
-            if (m = (videoId.match(/^\s*yt\.playerConfig\s*=\s*({.*})/)||[])[1]) {
+            if (m = (line.match(/^\s*yt\.playerConfig\s*=\s*({.*})/)||[])[1]) {
                 data = JSON.parse(m);
                 break;
             }
         }
-        if (! data.args) throw 'failed to extract JSON data.'
+        if (!(data && data.args)) throw 'failed to extract JSON data.';
         return data.args;
     },
 };
