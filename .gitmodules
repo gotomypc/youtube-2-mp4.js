@@ -5,5 +5,5 @@
 	path = modules/parseUri
 	url = https://github.com/franzenzenhofer/parseUri
 [submodule "t/test/modules/qunit"]
-	path = t/test/modules/qunit
+	path = modules/qunit
 	url = https://github.com/jquery/qunit.git
