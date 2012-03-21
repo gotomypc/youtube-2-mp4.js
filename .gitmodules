@@ -1,0 +1,9 @@
+[submodule "modules/jsdeferred"]
+	path = modules/jsdeferred
+	url = https://github.com/cho45/jsdeferred
+[submodule "modules/parseUri"]
+	path = modules/parseUri
+	url = https://github.com/franzenzenhofer/parseUri
+[submodule "t/test/modules/qunit"]
+	path = t/test/modules/qunit
+	url = https://github.com/jquery/qunit.git

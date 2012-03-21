@@ -1,24 +1,28 @@
-var QUnit = require('./qunit').QUnit,
+var QUnit    = require('./modules/qunit/qunit/qunit.js'),
     qunitTap = require('./node-modules/qunit-tap').qunitTap,
-    util = require('util'),
-    fs = require('fs');
+    util     = require('util'),
+    fs       = require('fs');
+
+QUnit.like = function(actual, expected, message) {
+    QUnit.push(expected.test(actual), actual, expected.toString(), message);
+};
 
 qunitTap(QUnit, util.puts, {noPlan: true});
 
 QUnit.init();
 QUnit.config.updateRate = 0;
 
-var Youtube2Mp4 = require('../../youtube-2-mp4.js');
+var Youtube2Mp4 = require('../../youtube-2-mp4.js').Youtube2Mp4;
 with ({
     ok         : QUnit.ok,
     is         : QUnit.equal,
-    like       : function (re, str) { QUnit.ok(re.test(str)) },
+    like       : QUnit.like,
     is_deeply  : QUnit.deepEqual,
     dies_ok    : QUnit.raises,
     subtest    : QUnit.test,
-    Youtube2Mp4 : Youtube2Mp4,
+    start      : QUnit.start,
+    asyncTest  : QUnit.asyncTest,
 }) {
-
     var content = fs.readFileSync('t/001_basic.js', 'utf-8');
     eval(content);
 }
