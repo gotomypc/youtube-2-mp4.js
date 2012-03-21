@@ -1,0 +1,2 @@
+make test-setup
+make test

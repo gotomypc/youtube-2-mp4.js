@@ -1,5 +1,5 @@
-var QUnit    = require('./modules/qunit/qunit/qunit.js'),
-    qunitTap = require('./node-modules/qunit-tap').qunitTap,
+var QUnit    = require('../../modules/qunit/qunit/qunit.js'),
+    qunitTap = require('../../node_modules/qunit-tap').qunitTap,
     util     = require('util'),
     fs       = require('fs');
 
