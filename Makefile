@@ -1,5 +1,5 @@
 test:
-	node t/test/node-test.js
+	node t/001_basic.js
 test-setup:
 	npm install qunit-tap
 	npm install request 

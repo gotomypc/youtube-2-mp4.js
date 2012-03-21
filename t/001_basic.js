@@ -1,5 +1,9 @@
-function async (cb) { setTimeout(cb, 0) }
+(function () {
+"use strict";
 
+var Helper = require('./test/node-test.js');
+Helper.define();
+var Youtube2Mp4 = require('../youtube-2-mp4.js').Youtube2Mp4;
 var Server = require('http').createServer(function (req, res) {
     res.writeHead(200, {'Content-Type': 'text/plain'});
     res.write('Hello, World!');
@@ -8,7 +12,7 @@ var Server = require('http').createServer(function (req, res) {
 var Port = '8124';
 
 asyncTest('http get', function() {
-    var HttpClient = require('../../http-client.js').HttpClient;
+    var HttpClient = require('../http-client.js').HttpClient;
     var ua = new HttpClient;
 
     Server.listen(Port);
@@ -18,14 +22,22 @@ asyncTest('http get', function() {
         Server.close();
     });
 });
-var yt = new Youtube2Mp4;
-subtest('get mp4', function(){
-    yt.getMp4('http://www.youtube.com/watch?v=U8z2W3UWr4w').next(function (s) {
-        console.log(s);
-    });
-    dies_ok(function () { yt.getMp4() });
 
+var yt = new Youtube2Mp4;
+asyncTest('get mp4', function(){
+    dies_ok(function () { yt.getMp4() });
     is(yt._videoId('ATg8CdRD68E'), 'ATg8CdRD68E');
     is(yt._videoId('http://www.youtube.com/watch?v=ATg8CdRD68E'), 'ATg8CdRD68E');
 
+    yt.getMp4('http://www.youtube.com/watch?v=U8z2W3UWr4w').next(function (result) {
+        start();
+        like(result.filename, /\.mp4$/);
+        like(result.videoUrl, /^http.+\.mp4$/);
+    }).error(function(e){
+        console.trace(e);
+    });
 });
+
+done_testing();
+
+}).call(this);

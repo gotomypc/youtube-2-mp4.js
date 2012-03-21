@@ -4,10 +4,9 @@
 var Deferred = require('./modules/jsdeferred/jsdeferred.js').Deferred;
 var d = new Deferred();
 
-var global = this;
-
 var HttpClient = function () {};
 
+var global = this;
 if (typeof exports == 'undefined') {
     exports.HttpClient = HttpClient;
 } else {
