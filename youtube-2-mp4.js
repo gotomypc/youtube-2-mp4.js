@@ -39,7 +39,7 @@ Youtube2Mp4.prototype = {
                 suffix     : data.videoUrlMap[fmt].suffix || this._suffix(fmt),
                 resolution : data.videoUrlMap[fmt].resolution || 0,
             });
-            return [filename, videoUrl];
+            return {filename: filename, videoUrl: videoUrl};
         });
     },
     _formatFilename: function (filename, data) {
@@ -131,7 +131,7 @@ Youtube2Mp4.prototype = {
         param.split(',').forEach(function (stuff) {
             var parsed = ParseUri('http://dum.my/?' + stuff);
             var query = parsed.queryKey;
-            fmtUrlMap[query.itag] = query.url;
+            fmtUrlMap[query.itag] = decodeURIComponent(query.url);
         });
         return fmtUrlMap;
     },

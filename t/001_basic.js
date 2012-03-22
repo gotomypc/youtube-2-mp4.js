@@ -32,9 +32,9 @@ asyncTest('get mp4', function(){
     yt.getMp4('http://www.youtube.com/watch?v=U8z2W3UWr4w').next(function (result) {
         start();
         like(result.filename, /\.mp4$/);
-        like(result.videoUrl, /^http.+\.mp4$/);
+        like(result.videoUrl, /^https?:\/\/.+$/);
     }).error(function(e){
-        console.trace(e);
+        console.trace(throw e);
     });
 });
 

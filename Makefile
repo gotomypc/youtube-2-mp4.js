@@ -1,5 +1,5 @@
 test:
-	prove --ext=.js --exec=node t/001_basic.js
+	prove -lv --ext=.js --exec=node t/*
 test-setup:
 	npm install qunit-tap
 	npm install request 
