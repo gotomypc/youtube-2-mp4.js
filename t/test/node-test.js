@@ -1,7 +1,7 @@
 (function () {
 "use strict";
 
-var QUnit    = require('../../modules/qunit/qunit/qunit.js'),
+var QUnit    = require('../../modules/qunit/qunit/qunit'),
     qunitTap = require('../../node_modules/qunit-tap').qunitTap,
     util     = require('util');
 

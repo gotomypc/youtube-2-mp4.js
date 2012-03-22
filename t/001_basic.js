@@ -1,9 +1,9 @@
 (function () {
 "use strict";
 
-var Helper = require('./test/node-test.js');
+var Helper = require('./test/node-test');
 Helper.define();
-var Youtube2Mp4 = require('../youtube-2-mp4.js').Youtube2Mp4;
+var Youtube2Mp4 = require('../youtube-2-mp4').Youtube2Mp4;
 var Server = require('http').createServer(function (req, res) {
     res.writeHead(200, {'Content-Type': 'text/plain'});
     res.write('Hello, World!');
@@ -12,7 +12,7 @@ var Server = require('http').createServer(function (req, res) {
 var Port = '8124';
 
 asyncTest('http get', function() {
-    var HttpClient = require('../http-client.js').HttpClient;
+    var HttpClient = require('../http-client').HttpClient;
     var ua = new HttpClient;
 
     Server.listen(Port);
@@ -34,7 +34,7 @@ asyncTest('get mp4', function(){
         like(result.filename, /\.mp4$/);
         like(result.videoUrl, /^https?:\/\/.+$/);
     }).error(function(e){
-        console.trace(throw e);
+        console.trace(e);
     });
 });
 

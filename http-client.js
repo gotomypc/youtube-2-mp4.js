@@ -1,7 +1,7 @@
 (function () {
 "use strict";
 
-var Deferred = require('./modules/jsdeferred/jsdeferred.js').Deferred;
+var Deferred = require('./modules/jsdeferred/jsdeferred').Deferred;
 var d = new Deferred();
 
 var HttpClient = function () {};

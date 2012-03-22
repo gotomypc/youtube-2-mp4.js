@@ -1,8 +1,8 @@
 (function () {
 "use strict";
 
-var HttpClient = require('./http-client.js').HttpClient;
-var ParseUri   = require('./modules/parseUri/parseuri.js'); // XXX module.export 決め打ちだけどTiで動くのか
+var HttpClient = require('./http-client').HttpClient;
+var ParseUri   = require('./modules/parseUri/parseuri'); // XXX module.export 決め打ちだけどTiで動くのか
 
 var Youtube2Mp4 = function () {};
 var BASE_URL = 'http://www.youtube.com/watch?v=';
